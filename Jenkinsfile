@@ -8,12 +8,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t ${IMAGE_NAME}:latest .'
@@ -41,11 +35,11 @@ pipeline {
 
     post {
         success {
-            echo "Deployment Successful!"
+            echo 'Deployment Successful!'
         }
 
         failure {
-            echo "Deployment Failed!"
+            echo 'Deployment Failed!'
         }
     }
 }
