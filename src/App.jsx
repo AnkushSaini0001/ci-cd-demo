@@ -4,7 +4,7 @@ export default function App() {
   return (
     <div style={{ fontFamily: "Arial", padding: "40px" }}>
       <h1>Hello Docker + React!</h1>
-      <p>Dummy project.</p>
+      <p>CI/CD</p>
     </div>
   );
 }
