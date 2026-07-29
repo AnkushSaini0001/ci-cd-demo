@@ -48,37 +48,76 @@ pipeline {
     agent any
 
     environment {
+        IMAGE_NAME = "react-demo"
+        CONTAINER_NAME = "react-demo"
+
         SERVER = "192.168.167.194"
         USER = "altruist"
-        DEPLOY_PATH = "/home/altruist/react_demo"
+
+        REMOTE_IMAGE = "/tmp/react-demo.tar"
     }
 
     stages {
 
-        stage('Install Dependencies') {
+        stage('Checkout') {
             steps {
-                sh 'npm install'
+                checkout scm
             }
         }
 
-        stage('Build React App') {
+        stage('Build Docker Image') {
             steps {
-                sh 'npm run build'
+                sh '''
+                    docker build -t ${IMAGE_NAME}:latest .
+                '''
             }
         }
 
-        stage('Deploy Build') {
+        stage('Save Docker Image') {
+            steps {
+                sh '''
+                    docker save -o react-demo.tar ${IMAGE_NAME}:latest
+                '''
+            }
+        }
+
+        stage('Copy Image to Server') {
             steps {
                 sshagent(['server-ssh-key']) {
-                    sh """
-                        ssh ${USER}@${SERVER} "mkdir -p ${DEPLOY_PATH}"
-
-                        rsync -avz --delete \
-                            dist/ \
-                            ${USER}@${SERVER}:${DEPLOY_PATH}/
-                    """
+                    sh '''
+                        scp -o StrictHostKeyChecking=no react-demo.tar ${USER}@${SERVER}:${REMOTE_IMAGE}
+                    '''
                 }
             }
+        }
+
+        stage('Deploy on Server') {
+            steps {
+                sshagent(['server-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "
+                            docker load -i ${REMOTE_IMAGE} &&
+                            docker stop ${CONTAINER_NAME} || true &&
+                            docker rm ${CONTAINER_NAME} || true &&
+                            docker run -d \
+                                --name ${CONTAINER_NAME} \
+                                -p 80:80 \
+                                --restart unless-stopped \
+                                ${IMAGE_NAME}:latest
+                        "
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment Successful!"
+        }
+
+        failure {
+            echo "Deployment Failed!"
         }
     }
 }
