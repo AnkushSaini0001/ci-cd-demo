@@ -44,80 +44,49 @@
 //     }
 // }
 
+
 pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "react-demo"
-        CONTAINER_NAME = "react-demo"
-
-        SERVER = "192.168.167.194"
-        USER = "altruist"
-
-        REMOTE_IMAGE = "/tmp/react-demo.tar"
+        IMAGE_NAME = "docker-react-demo"
+        CONTAINER_NAME = "docker-demo"
+        TEST_SERVER = "ankush@172.28.56.74"
+        APP_DIR = "/home/ankush/ci-cd-demo"
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Deploy to Test Server') {
             steps {
-                checkout scm
-            }
-        }
+                sh """
+                ssh -o StrictHostKeyChecking=no ${TEST_SERVER} '
+                    cd ${APP_DIR}
 
-        stage('Build Docker Image') {
-            steps {
-                sh '''
+                    git pull
+
                     docker build -t ${IMAGE_NAME}:latest .
-                '''
-            }
-        }
 
-        stage('Save Docker Image') {
-            steps {
-                sh '''
-                    docker save -o react-demo.tar ${IMAGE_NAME}:latest
-                '''
-            }
-        }
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
 
-        stage('Copy Image to Server') {
-            steps {
-                sshagent(['server-ssh-key']) {
-                    sh '''
-                        scp -o StrictHostKeyChecking=no react-demo.tar ${USER}@${SERVER}:${REMOTE_IMAGE}
-                    '''
-                }
-            }
-        }
-
-        stage('Deploy on Server') {
-            steps {
-                sshagent(['server-ssh-key']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "
-                            docker load -i ${REMOTE_IMAGE} &&
-                            docker stop ${CONTAINER_NAME} || true &&
-                            docker rm ${CONTAINER_NAME} || true &&
-                            docker run -d \
-                                --name ${CONTAINER_NAME} \
-                                -p 80:80 \
-                                --restart unless-stopped \
-                                ${IMAGE_NAME}:latest
-                        "
-                    '''
-                }
+                    docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        -p 5173:80 \
+                        ${IMAGE_NAME}:latest
+                '
+                """
             }
         }
     }
 
     post {
         success {
-            echo "Deployment Successful!"
+            echo 'Deployment Successful!'
         }
 
         failure {
-            echo "Deployment Failed!"
+            echo 'Deployment Failed!'
         }
     }
 }
