@@ -6,7 +6,7 @@ export default function App() {
       <h1>Hello Docker + React!</h1>
       <p>
         CI/CD pipe line testing.Congratulations! You have successfully deployed
-        a React application using Docker and Jenkins.happy life.
+        a React application using Docker and Jenkins.happy life.yes..
       </p>
     </div>
   );
