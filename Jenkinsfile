@@ -57,27 +57,27 @@ pipeline {
 
     stages {
 
-        // stage('Deploy to Test Server') {
-        //     steps {
-        //         sh """
-        //         ssh -o StrictHostKeyChecking=no ${TEST_SERVER} '
-        //             cd ${APP_DIR}
+        stage('Deploy to Test Server') {
+            steps {
+                sh """
+                ssh -o StrictHostKeyChecking=no ${TEST_SERVER} '
+                    cd ${APP_DIR}
 
-        //             git pull
+                    git pull
 
-        //             docker build -t ${IMAGE_NAME}:latest .
+                    docker build -t ${IMAGE_NAME}:latest .
 
-        //             docker stop ${CONTAINER_NAME} || true
-        //             docker rm ${CONTAINER_NAME} || true
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
 
-        //             docker run -d \
-        //                 --name ${CONTAINER_NAME} \
-        //                 -p 5173:80 \
-        //                 ${IMAGE_NAME}:latest
-        //         '
-        //         """
-        //     }
-        // }
+                    docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        -p 5173:80 \
+                        ${IMAGE_NAME}:latest
+                '
+                """
+            }
+        }
     //     stage('Deploy to Test Server') {
     // steps {
     //     sh """
@@ -103,41 +103,41 @@ pipeline {
     //     EOF
     //     """
     // }
-    stage('Deploy to Test Server') {
-    steps {
-        sh '''
-ssh -o StrictHostKeyChecking=no ${TEST_SERVER} <<'EOF'
-set -ex
+//     stage('Deploy to Test Server') {
+//     steps {
+//         sh '''
+// ssh -o StrictHostKeyChecking=no ${TEST_SERVER} <<'EOF'
+// set -ex
 
-cd ${APP_DIR}
+// cd ${APP_DIR}
 
-echo "===== WHOAMI ====="
-whoami
+// echo "===== WHOAMI ====="
+// whoami
 
-echo "===== PWD ====="
-pwd
+// echo "===== PWD ====="
+// pwd
 
-echo "===== GIT ====="
-git pull
+// echo "===== GIT ====="
+// git pull
 
-echo "===== BUILD ====="
-docker build -t ${IMAGE_NAME}:latest .
+// echo "===== BUILD ====="
+// docker build -t ${IMAGE_NAME}:latest .
 
-echo "===== STOP ====="
-docker stop ${CONTAINER_NAME} || true
-docker rm ${CONTAINER_NAME} || true
+// echo "===== STOP ====="
+// docker stop ${CONTAINER_NAME} || true
+// docker rm ${CONTAINER_NAME} || true
 
-echo "===== RUN ====="
-docker run -d \
-  --name ${CONTAINER_NAME} \
-  -p 5173:80 \
-  ${IMAGE_NAME}:latest
+// echo "===== RUN ====="
+// docker run -d \
+//   --name ${CONTAINER_NAME} \
+//   -p 5173:80 \
+//   ${IMAGE_NAME}:latest
 
-echo "===== DONE ====="
-EOF
-'''
-    }
-}
+// echo "===== DONE ====="
+// EOF
+// '''
+//     }
+// }
 }
     }
 
