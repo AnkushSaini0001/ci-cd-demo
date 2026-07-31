@@ -78,31 +78,66 @@ pipeline {
         //         """
         //     }
         // }
-        stage('Deploy to Test Server') {
+    //     stage('Deploy to Test Server') {
+    // steps {
+    //     sh """
+    //     ssh -o StrictHostKeyChecking=no ${TEST_SERVER} << 'EOF'
+    //     set -ex
+
+    //     cd ${APP_DIR}
+
+    //     pwd
+    //     ls -la
+
+    //     git pull
+
+    //     docker build -t ${IMAGE_NAME}:latest .
+
+    //     docker stop ${CONTAINER_NAME} || true
+    //     docker rm ${CONTAINER_NAME} || true
+
+    //     docker run -d \
+    //       --name ${CONTAINER_NAME} \
+    //       -p 5173:80 \
+    //       ${IMAGE_NAME}:latest
+    //     EOF
+    //     """
+    // }
+    stage('Deploy to Test Server') {
     steps {
-        sh """
-        ssh -o StrictHostKeyChecking=no ${TEST_SERVER} << 'EOF'
-        set -ex
+        sh '''
+ssh -o StrictHostKeyChecking=no ${TEST_SERVER} <<'EOF'
+set -ex
 
-        cd ${APP_DIR}
+cd ${APP_DIR}
 
-        pwd
-        ls -la
+echo "===== WHOAMI ====="
+whoami
 
-        git pull
+echo "===== PWD ====="
+pwd
 
-        docker build -t ${IMAGE_NAME}:latest .
+echo "===== GIT ====="
+git pull
 
-        docker stop ${CONTAINER_NAME} || true
-        docker rm ${CONTAINER_NAME} || true
+echo "===== BUILD ====="
+docker build -t ${IMAGE_NAME}:latest .
 
-        docker run -d \
-          --name ${CONTAINER_NAME} \
-          -p 5173:80 \
-          ${IMAGE_NAME}:latest
-        EOF
-        """
+echo "===== STOP ====="
+docker stop ${CONTAINER_NAME} || true
+docker rm ${CONTAINER_NAME} || true
+
+echo "===== RUN ====="
+docker run -d \
+  --name ${CONTAINER_NAME} \
+  -p 5173:80 \
+  ${IMAGE_NAME}:latest
+
+echo "===== DONE ====="
+EOF
+'''
     }
+}
 }
     }
 
