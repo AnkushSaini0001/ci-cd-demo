@@ -11,25 +11,16 @@ pipeline {
     stages {
         stage('Deploy to Test Server') {
             steps {
-                sh '''
-ssh -o StrictHostKeyChecking=no ${TEST_SERVER} <<EOF
-set -ex
-
+sh """
+ssh -tt -o StrictHostKeyChecking=no ${TEST_SERVER} '
 cd ${APP_DIR}
-
 git pull
-
-docker build -t ${IMAGE_NAME}:latest .
-
+docker build --progress=plain -t ${IMAGE_NAME}:latest .
 docker stop ${CONTAINER_NAME} || true
 docker rm ${CONTAINER_NAME} || true
-
-docker run -d \
-  --name ${CONTAINER_NAME} \
-  -p 5173:80 \
-  ${IMAGE_NAME}:latest
-EOF
-'''
+docker run -d --name ${CONTAINER_NAME} -p 5173:80 ${IMAGE_NAME}:latest
+'
+"""
             }
         }
     }
