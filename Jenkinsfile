@@ -57,27 +57,53 @@ pipeline {
 
     stages {
 
+        // stage('Deploy to Test Server') {
+        //     steps {
+        //         sh """
+        //         ssh -o StrictHostKeyChecking=no ${TEST_SERVER} '
+        //             cd ${APP_DIR}
+
+        //             git pull
+
+        //             docker build -t ${IMAGE_NAME}:latest .
+
+        //             docker stop ${CONTAINER_NAME} || true
+        //             docker rm ${CONTAINER_NAME} || true
+
+        //             docker run -d \
+        //                 --name ${CONTAINER_NAME} \
+        //                 -p 5173:80 \
+        //                 ${IMAGE_NAME}:latest
+        //         '
+        //         """
+        //     }
+        // }
         stage('Deploy to Test Server') {
-            steps {
-                sh """
-                ssh -o StrictHostKeyChecking=no ${TEST_SERVER} '
-                    cd ${APP_DIR}
+    steps {
+        sh """
+        ssh -o StrictHostKeyChecking=no ${TEST_SERVER} << 'EOF'
+        set -ex
 
-                    git pull
+        cd ${APP_DIR}
 
-                    docker build -t ${IMAGE_NAME}:latest .
+        pwd
+        ls -la
 
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
+        git pull
 
-                    docker run -d \
-                        --name ${CONTAINER_NAME} \
-                        -p 5173:80 \
-                        ${IMAGE_NAME}:latest
-                '
-                """
-            }
-        }
+        docker build -t ${IMAGE_NAME}:latest .
+
+        docker stop ${CONTAINER_NAME} || true
+        docker rm ${CONTAINER_NAME} || true
+
+        docker run -d \
+          --name ${CONTAINER_NAME} \
+          -p 5173:80 \
+          ${IMAGE_NAME}:latest
+        EOF
+        """
+    }
+}
     }
 
     post {
